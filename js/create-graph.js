@@ -7,12 +7,13 @@ $(function () {
     var treeGraph;
 
     var BaseConfig = {
+        itemPadding: 10,
         nameFontSize: 12,
         childCountWidth: 22,
-        countMarginLeft: 0,
-        itemPadding: 16,
-        nameMarginLeft: 4,
-        rootPadding: 18,
+        countMarginLeft: 10,
+        nameMarginLeft: 10,
+        nodeMinWidth: 50,
+        rootPadding: 20,
     };
     window.createGraph = {
         isAdmin: false, // 是否为管理员
@@ -20,13 +21,14 @@ $(function () {
         init () {
             treeGraph = this.initGraph();
             return {
+                isAdmin: this.isAdmin,
                 treeGraph,
                 utils,
             };
         },
         // 初始化树图函数
         initGraph () {
-            var { TreeGraph, Util, Menu, Minimap, Grid, Tooltip, ToolBar } = window.G6;
+            var { TreeGraph, Util, Menu, Minimap, Grid, Tooltip, ToolBar, registerEdge, registerNode } = window.G6;
             var grid = new Grid();
             var minimap = new Minimap({
                 size: [200, 150],
@@ -34,7 +36,13 @@ $(function () {
             var menu = this.createContextMenu(Menu);
             var tooltip = this.createTooltip(Tooltip);
             var toolbar = this.createToolbar(ToolBar);
-            var container = document.getElementById('graph-container');
+            var container = $('#graph-container')[0];
+
+            // 注册自定义边
+            this.registerEdge(registerEdge);
+            // 注册自定义节点
+            this.registerNode(registerNode);
+
             var graph = new TreeGraph({
                 container: container,
                 width: container.offsetWidth,
@@ -59,24 +67,47 @@ $(function () {
                     ],
                 },
                 defaultNode: {
-                    // type: 'treeNode',
+                    type: 'treeNode',
                     anchorPoints: [
                         [0, 0.5],
                         [1, 0.5],
                     ],
                 },
-                layout: {
-                    type: 'compactBox',
-                    direction: 'LR',
-                    getId(d) {
-                        return d.id;
+                defaultEdge: {
+                    type: 'smooth-edge',
+                },
+                nodeStateStyles: {
+                    selected: {
+                        lineWidth: 2,
+                        fill:      '#4483FF',
+                        labelCfg:  {
+                            style: {
+                                fill:       '#fff',
+                                fontWeight: 'bold',
+                            },
+                        },
                     },
+                    highlight: {
+                        lineWidth: 1,
+                        fill:      '#f85564',
+                        stroke:    '#f85564',
+                        labelCfg:  {
+                            style: {
+                                fill:       '#fff',
+                                fontWeight: 'bold',
+                            },
+                        },
+                    },
+                },
+                layout: {
+                    type: 'mindmap',
+                    direction: 'H',
                     getHeight() {
                         return 16;
                     },
                     getWidth (d) {
-                        const labelWidth = Util.getTextSize(d.label, BaseConfig.nameFontSize)[0];
-                        const width =
+                        var labelWidth = Util.getTextSize(d.label, BaseConfig.nameFontSize)[0];
+                        var width =
                             BaseConfig.itemPadding +
                             BaseConfig.nameMarginLeft +
                             labelWidth +
@@ -105,10 +136,10 @@ $(function () {
                 offsetY: -14,
                 // 右击节点时显示右键菜单
                 shouldBegin (e) {
-                    let shouldBegin = true;
+                    var shouldBegin = true;
 
                     if (e.item) {
-                        const type = e.item.get('type');
+                        var type = e.item.get('type');
 
                         if (type === 'edge') {
                             shouldBegin = false;
@@ -127,8 +158,8 @@ $(function () {
                     if (e.name === 'edge-shape:contextmenu') {
                         // 边
                         return `
-                    <p class="menu-item" command="deleteItem">
-                        <i command="deleteItem"></i>删除
+                    <p class="menu-item" command="devareItem">
+                        <i command="devareItem"></i>删除
                     </p>`;
                     }
 
@@ -140,7 +171,7 @@ $(function () {
                         name: '复制节点',
                     },
                     {
-                        command: 'deleteItem',
+                        command: 'devareItem',
                         name: '删除节点',
                     }];
 
@@ -151,7 +182,7 @@ $(function () {
                     return menus;
                 },
                 handleMenuClick (target, item) {
-                    const command = target.getAttribute('command');
+                    var command = target.getAttribute('command');
 
                     graphMenuCallBack[command] && graphMenuCallBack[command](item);
                 },
@@ -163,17 +194,25 @@ $(function () {
                 offsetX: 20,
                 offsetY: -20,
                 itemTypes: ['node'],
+                // fixToNode: [-1, 0.5],
                 getContent (e) {
                     var outDiv = document.createElement('div');
                     outDiv.style.width = 'fit-content';
                     outDiv.innerHTML = `
-                <h4>Custom Content</h4>
-                <ul>
-                    <li>Type: ${e.item.getType()}</li>
-                </ul>
-                <ul>
-                    <li>Label: ${e.item.getModel().label || e.item.getModel().id}</li>
-                </ul>`;
+                        <h4 class="tooltip-title">我的测试成绩: 80分</h4>
+                        <ul>
+                            <li>
+                                <a class="go-test" href="##" target="_blank">去考试 <i class="iconfont icon-new-tab"></i></a>
+                            </li>
+                            <li>
+                                <p>自学资料: </p>
+                            </li>
+                            <li>
+                                <p>有疑问? 找组织:</p>
+                                <img class="QR-code" src="./iShot2021-08-15_07.23.56.png" />
+                            </li>
+                        </ul>
+                    `;
                     return outDiv;
                 }
             });
@@ -196,7 +235,211 @@ $(function () {
                     toolbarCallBack[code] && toolbarCallBack[code]();
                 }
             });
-        }
+        },
+        // 自定义边
+        registerEdge (registerEdge) {
+            registerEdge('smooth-edge', {
+                draw(cfg, group) {
+                    var { startPoint, endPoint } = cfg;
+                    var hgap = endPoint.x - startPoint.x;
+                    var path = [
+                        ['M', startPoint.x, startPoint.y],
+                        [
+                            'C',
+                            startPoint.x + hgap / 4,
+                            startPoint.y,
+                            endPoint.x - hgap / 2,
+                            endPoint.y,
+                            endPoint.x,
+                            endPoint.y,
+                        ],
+                    ];
+
+                    var shape = group.addShape('path', {
+                        attrs: {
+                            stroke: '#AAB7C4',
+                            path,
+                        },
+                        name: 'smooth-path-shape',
+                    });
+
+                    return shape;
+                },
+            });
+        },
+        // 自定义节点
+        registerNode (registerNode) {
+            registerNode('treeNode', {
+                draw(cfg, group) {
+                    var { label, collapsed, selected, children, depth } = cfg;
+                    var rootNode = depth === 0;
+                    var hasChildren = children && children.length;
+                    var isRight = cfg.x > 0;
+
+                    var {
+                        childCountWidth,
+                        countMarginLeft,
+                        nameMarginLeft,
+                        itemPadding,
+                        rootPadding,
+                    } = BaseConfig;
+
+                    var width = 0;
+                    var height = 28;
+                    var x = 0;
+                    var y = -height / 2;
+
+                    // 名称文本
+                    var text = group.addShape('text', {
+                        attrs: {
+                            text: label,
+                            x: x + itemPadding,
+                            y,
+                            textAlign: 'left',
+                            textBaseline: 'top',
+                            fontFamily: 'PingFangSC-Regular',
+                        },
+                        cursor: 'pointer',
+                        name: 'name-text-shape',
+                    });
+                    var textWidth = text.getBBox().width;
+                    var nodeWidth = textWidth + itemPadding + nameMarginLeft;
+
+                    width = nodeWidth < BaseConfig.nodeMinWidth ? BaseConfig.nodeMinWidth : nodeWidth;
+
+                    if (!rootNode && hasChildren) {
+                        width += countMarginLeft;
+                        width += childCountWidth;
+                    }
+
+                    var keyShapeAttrs = {
+                        x: isRight ? x : x,
+                        y,
+                        width,
+                        height,
+                        radius: 4,
+                    };
+
+                    // keyShape根节点选中样式
+                    if (rootNode && selected) {
+                        keyShapeAttrs.fill = '#e8f7ff';
+                        keyShapeAttrs.stroke = '#e8f7ff';
+                    }
+                    var keyShape = group.addShape('rect', {
+                        attrs: keyShapeAttrs,
+                        name: 'root-key-shape-rect-shape',
+                    });
+
+                    if (!rootNode) {
+                        // 底部横线
+                        group.addShape('path', {
+                            attrs: {
+                                path: [
+                                    ['M', isRight ? x : x, 0],
+                                    ['L', width, 0],
+                                ],
+                                stroke: '#AAB7C4',
+                                lineWidth: 1,
+                            },
+                            name: 'node-path-shape',
+                        });
+                    }
+
+                    var mainX = x - 10;
+                    var mainY = -height + 15;
+
+                    if (rootNode) {
+                        group.addShape('rect', {
+                            attrs: {
+                                x: mainX,
+                                y: mainY,
+                                width: width + 10,
+                                height,
+                                radius: 14,
+                                fill: '#e8f7ff',
+                                cursor: 'pointer',
+                            },
+                            name: 'main-shape',
+                        });
+                    }
+
+                    var nameColor = 'rgba(0, 0, 0, .65)';
+
+                    if (selected) {
+                        nameColor = '#40A8FF';
+                    }
+
+                    // 名称
+                    if (rootNode) {
+                        group.addShape('text', {
+                            attrs: {
+                                text: label,
+                                x: mainX + rootPadding,
+                                y: 1,
+                                textAlign: 'left',
+                                textBaseline: 'middle',
+                                fill: nameColor,
+                                fontSize: 12,
+                                fontFamily: 'PingFangSC-Regular',
+                                cursor: 'pointer',
+                            },
+                            name: 'root-text-shape',
+                        });
+                    } else {
+                        group.addShape('text', {
+                            attrs: {
+                                text: label,
+                                x: selected ? mainX + 6 : mainX + 6,
+                                y: y - 5,
+                                textAlign: 'start',
+                                textBaseline: 'top',
+                                fill: nameColor,
+                                fontSize: 12,
+                                fontFamily: 'PingFangSC-Regular',
+                                cursor: 'pointer',
+                            },
+                            name: 'not-root-text-shape',
+                        });
+                    }
+
+                    // 子类数量
+                    if (hasChildren && !rootNode) {
+                        var childCountHeight = 12;
+                        var childCountX = width - childCountWidth;
+                        var childCountY = -childCountHeight / 2;
+
+                        group.addShape('rect', {
+                            attrs: {
+                                width: childCountWidth,
+                                height: 12,
+                                stroke: collapsed ? '#1890ff' : '#5CDBD3',
+                                fill: collapsed ? '#fff' : '#E6FFFB',
+                                x: isRight ? childCountX : -childCountX,
+                                y: childCountY,
+                                radius: 6,
+                                cursor: 'pointer',
+                            },
+                            name: 'child-count-rect-shape',
+                        });
+                        group.addShape('text', {
+                            attrs: {
+                                text: `${children?.length}`,
+                                fill: 'rgba(0, 0, 0, .65)',
+                                x: isRight ? childCountX + childCountWidth / 2 : childCountWidth / 2 - childCountX,
+                                y: childCountY + 12,
+                                fontSize: 10,
+                                width: childCountWidth,
+                                textAlign: 'center',
+                                cursor: 'pointer',
+                            },
+                            name: 'child-count-text-shape',
+                        });
+                    }
+
+                    return keyShape;
+                },
+            });
+        },
     };
 
     // 工具函数
@@ -230,7 +473,7 @@ $(function () {
     // 技能树右键菜单回调映射
     var graphMenuCallBack = {
         copyNode (item) {
-            const model = item.getModel();
+            var model = item.getModel();
 
             treeGraph.addItem('node', {
                 ...model,
@@ -242,8 +485,8 @@ $(function () {
             utils.save();
         },
         // 删除节点和边
-        deleteItem (item) {
-            const isEdge = item.get('type') === 'edge';
+        devareItem (item) {
+            var isEdge = item.get('type') === 'edge';
 
             if (isEdge) {
                 treeGraph.removeChild(item);
@@ -305,11 +548,11 @@ $(function () {
             treeGraph.zoom(1.1);
         },
         graphHelp () {
-            $('#toolbar-help').show(300);
+            $('#toolbar-help').fadeIn(300);
         },
     };
 
     $('.dialog-container .icon-failed').on('click', function () {
-        $(this).parents('.dialog').hide(300);
+        $(this).parents('.dialog').fadeOut(300);
     });
 });
