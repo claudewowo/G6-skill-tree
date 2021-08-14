@@ -1,0 +1,130 @@
+
+/**
+* 定义标准盒模型
+*/
+html, body, article, hgroup, figure, main, section, header, footer, aside, nav, video, audio, canvas, details, h1, h2, h3, h4, h5, h6, div, p, dl, dd, ul, li, ol, label, form, input, img, textarea, th, tr, td, button, select, a, span, em, i, sub, sup, pre, code, table {
+    box-sizing:border-box;
+}
+
+/**
+* 设置字体、行高、颜色等属性
+*/
+body {
+    margin:0;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.4;
+    color: #666;
+}
+
+h1, h2, h3, h4, h5, h6,
+ul, li, ol, dl, dt, dd,
+figure, p {
+    padding: 0;
+    margin: 0;
+    font-weight: normal;
+    word-wrap: break-word;
+}
+
+/**
+* 超链接颜色
+*/
+
+a {color: #438bff;
+    display: inline-block;
+    text-decoration: none;
+    font-size: inherit;
+    cursor: pointer;
+    outline: none;
+}
+
+ul{list-style: none;
+    padding-inline-start:0;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button{
+-webkit-appearance: none !important;
+}
+input[type="number"]{-moz-appearance:textfield;}
+
+/* 页面样式 */
+.el-container{
+    display: flex;
+    height: 100vh;
+}
+.skill_tree{
+    width:240px;
+    padding: 20px;
+}
+.layout-main{
+    flex: 1;
+    border-left: 1px solid #e0e0e0;
+}
+.layout-searcher{
+    padding: 20px;
+}
+.layout-graph{
+    position: relative;
+    height:calc(100vh - 65px);
+    border-top: 1px solid #e0e0e0;
+}
+#graph-container{
+    position: relative;
+    height: 100%;
+}
+#graph-container .g6-component-toolbar{
+    left: auto;
+    bottom: auto;
+    top: 20px;
+    right:20px;
+    width: 30px;
+}
+#graph-container .g6-component-toolbar .iconfont{
+    border-top: 1px solid #e0e0e0;
+    cursor: pointer;
+    margin-top: 5px;
+    padding-top: 5px;
+    width: auto;
+    height: auto;
+}
+#graph-container .g6-component-toolbar .iconfont:first-child{border:0;margin-top:0;padding-top:0;}
+#graph-container .g6-component-toolbar .iconfont::before{display:block;}
+#graph-container .g6-component-toolbar .iconfont:hover::before{
+    transform: scale(1.2);
+    color: #438bff;
+}
+
+.dialog{
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    background:rgba(0, 0, 0, 0.3);
+    display: none;
+}
+.dialog-container{
+    position:fixed;
+    top:50%;
+    left:50%;
+    width: 500px;
+    transform: translate(-50%, -50%);
+    border:1px solid #e0e0e0;
+    border-radius: 5px;
+    background:#fff;
+    padding: 20px;
+}
+.dialog-container .icon-failed{
+    position:absolute;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+    font-size: 20px;
+    color: #f85564;
+}
+
+.mb10{margin-bottom: 10px;}
+.mt15{margin-top: 15px;}
