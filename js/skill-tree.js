@@ -1,5 +1,5 @@
 $(function () {
-    var { isAdmin, treeGraph } = createGraph.init();
+    var { isAdmin, treeGraph, utils } = createGraph.init();
 
     /* $.ajax({
         url: '',

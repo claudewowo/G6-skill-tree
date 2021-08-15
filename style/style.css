@@ -1,4 +1,4 @@
-@import 'https://at.alicdn.com/t/font_2273296_iyz36ndyxak.css';
+@import 'https://at.alicdn.com/t/font_2273296_mn0rikfalv.css';
 
 /**
 * 定义标准盒模型
@@ -139,14 +139,8 @@ input[type="number"]{-moz-appearance:textfield;}
 }
 .g6-component-tooltip .go-test{
     color: #438bff;
-    width:70px;
-    height:30px;
     display: inline-block;
-    line-height:30px;
-    border-radius: 5px;
-    border: 1px solid #e0e0e0;
-    text-align: center;
-    margin:10px 0;
+    margin:0 4px;
 }
 .g6-component-tooltip .icon-new-tab{
     position: relative;
@@ -155,7 +149,7 @@ input[type="number"]{-moz-appearance:textfield;}
     bottom:-1px;
 }
 .g6-component-tooltip .QR-code{
-    width: 200px;
-    height: 200px;
+    width: 250px;
+    height: 250px;
     border-radius: 5px;
 }

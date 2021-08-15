@@ -13,7 +13,7 @@ $(function () {
         countMarginLeft: 10,
         nameMarginLeft: 10,
         nodeMinWidth: 50,
-        rootPadding: 20,
+        rootPadding: 15,
     };
     window.createGraph = {
         isAdmin: false, // 是否为管理员
@@ -39,9 +39,9 @@ $(function () {
             var container = $('#graph-container')[0];
 
             // 注册自定义边
-            this.registerEdge(registerEdge);
+            this.registerEdge(registerEdge, Util);
             // 注册自定义节点
-            this.registerNode(registerNode);
+            this.registerNode(registerNode, Util);
 
             var graph = new TreeGraph({
                 container: container,
@@ -107,12 +107,8 @@ $(function () {
                     },
                     getWidth (d) {
                         var labelWidth = Util.getTextSize(d.label, BaseConfig.nameFontSize)[0];
-                        var width =
-                            BaseConfig.itemPadding +
-                            BaseConfig.nameMarginLeft +
-                            labelWidth +
-                            BaseConfig.rootPadding +
-                            BaseConfig.childCountWidth;
+                        var width = BaseConfig.itemPadding + labelWidth + BaseConfig.childCountWidth;
+
                         return width;
                     },
                     getVGap() {
@@ -209,22 +205,27 @@ $(function () {
                 }, 300);
             };
             return new Tooltip({
+                offsetX: 30,
+                offsetY: -20,
                 itemTypes: ['node'],
-                fixToNode: [1, -1],
+                shouldBegin (e) {
+                    var model = e.item.getModel();
+
+                    return model.depth > 0;
+                },
                 getContent (e) {
+                    var model = e.item.getModel();
+
                     var outDiv = document.createElement('div');
                     outDiv.style.width = 'fit-content';
                     outDiv.innerHTML = `
-                        <h4 class="tooltip-title">我的测试成绩: 80分</h4>
+                        ${ model.data && model.data.score ? `<h4 class="tooltip-title">我的测试成绩: ${ model.data.score }分</h4>` : '' }
                         <ul>
                             <li>
-                                <a class="go-test" href="##" target="_blank">去考试 <i class="iconfont icon-new-tab"></i></a>
+                                你还没获得过此项技能, 快去参加<a class="go-test" href="##" target="_blank">考试 <i class="iconfont icon-new-tab"></i></a>吧
                             </li>
                             <li>
-                                <p>自学资料: </p>
-                            </li>
-                            <li>
-                                <p>有疑问? 找组织:</p>
+                                <p class="mt15">有疑问? 找组织:</p>
                                 <img class="QR-code" src="./iShot2021-08-15_07.23.56.png" />
                             </li>
                         </ul>
@@ -240,8 +241,8 @@ $(function () {
                     /* 这里必须是 ul li */
                     return `
                     <ul class="graph-toolbar">
-                        <li class="iconfont icon-zoom-out" code="zoomOut" title="缩小"></li>
                         <li class="iconfont icon-zoom-in" code="zoomIn" title="放大"></li>
+                        <li class="iconfont icon-zoom-out" code="zoomOut" title="缩小"></li>
                         <li class="iconfont icon-1x" code="defaultSize" title="1倍大小"></li>
                         <li class="iconfont icon-why" code="graphHelp" title="1倍大小"></li>
                     </ul>
@@ -284,10 +285,10 @@ $(function () {
             });
         },
         // 自定义节点
-        registerNode (registerNode) {
+        registerNode (registerNode, Util) {
             registerNode('treeNode', {
                 draw(cfg, group) {
-                    var { label, collapsed, selected, children, depth } = cfg;
+                    var { label, collapsed, data, selected, children, depth } = cfg;
                     var rootNode = depth === 0;
                     var hasChildren = children && children.length;
                     var isRight = cfg.x > 0;
@@ -303,22 +304,10 @@ $(function () {
                     var width = 0;
                     var height = 28;
                     var x = 0;
-                    var y = -height / 2;
+                    var y = 0;
+                    // var y = -height / 2;
 
-                    // 名称文本
-                    var text = group.addShape('text', {
-                        attrs: {
-                            text: label,
-                            x: x + itemPadding,
-                            y,
-                            textAlign: 'left',
-                            textBaseline: 'top',
-                            fontFamily: 'PingFangSC-Regular',
-                        },
-                        cursor: 'pointer',
-                        name: 'name-text-shape',
-                    });
-                    var textWidth = text.getBBox().width;
+                    var textWidth = Util.getTextSize(String(label), 12)[0];
                     var nodeWidth = textWidth + itemPadding + nameMarginLeft;
 
                     width = nodeWidth < BaseConfig.nodeMinWidth ? BaseConfig.nodeMinWidth : nodeWidth;
@@ -329,7 +318,7 @@ $(function () {
                     }
 
                     var keyShapeAttrs = {
-                        x: isRight ? x : x,
+                        x,
                         y,
                         width,
                         height,
@@ -346,30 +335,15 @@ $(function () {
                         name: 'root-key-shape-rect-shape',
                     });
 
-                    if (!rootNode) {
-                        // 底部横线
-                        group.addShape('path', {
-                            attrs: {
-                                path: [
-                                    ['M', isRight ? x : x, 0],
-                                    ['L', width, 0],
-                                ],
-                                stroke: '#AAB7C4',
-                                lineWidth: 1,
-                            },
-                            name: 'node-path-shape',
-                        });
-                    }
-
-                    var mainX = x - 10;
-                    var mainY = -height + 15;
+                    var mainX = x;
+                    var mainY = 0;
 
                     if (rootNode) {
                         group.addShape('rect', {
                             attrs: {
                                 x: mainX,
                                 y: mainY,
-                                width: width + 10,
+                                width,
                                 height,
                                 radius: 14,
                                 fill: '#e8f7ff',
@@ -387,11 +361,12 @@ $(function () {
 
                     // 名称
                     if (rootNode) {
+                        // 根节点
                         group.addShape('text', {
                             attrs: {
                                 text: label,
-                                x: mainX + rootPadding,
-                                y: 1,
+                                x: mainX + 10,
+                                y: height / 2,
                                 textAlign: 'left',
                                 textBaseline: 'middle',
                                 fill: nameColor,
@@ -402,20 +377,47 @@ $(function () {
                             name: 'root-text-shape',
                         });
                     } else {
+                        // 其他节点
                         group.addShape('text', {
                             attrs: {
                                 text: label,
-                                x: selected ? mainX + 6 : mainX + 6,
-                                y: y - 5,
                                 textAlign: 'start',
                                 textBaseline: 'top',
                                 fill: nameColor,
                                 fontSize: 12,
                                 fontFamily: 'PingFangSC-Regular',
                                 cursor: 'pointer',
+                                x: isRight ? mainX + 16 : width - textWidth,
+                                y: 0,
                             },
                             name: 'not-root-text-shape',
                         });
+                        // 名称前面加个图标
+                        group.addShape('text', {
+                            attrs: {
+                                text: data && data.marked ? '\ue708' : '\ue616',
+                                fontFamily: 'iconfont',
+                                fill: data && data.marked ? '#333' : '#aaa',
+                                fontSize: 12,
+                                x: isRight ? 2 : width - textWidth - 14,
+                                y: 12,
+                            },
+                        });
+                        // 底部横线
+                        group.addShape('path', {
+                            attrs: {
+                                path: [
+                                    ['M', isRight ? x : x, height / 2],
+                                    ['L', width, height / 2],
+                                ],
+                                stroke: '#AAB7C4',
+                                lineWidth: 1,
+                            },
+                            name: 'node-path-shape',
+                        });
+
+                        keyShape.toFront();
+
                     }
 
                     // 子类数量
@@ -430,8 +432,8 @@ $(function () {
                                 height: 12,
                                 stroke: collapsed ? '#1890ff' : '#5CDBD3',
                                 fill: collapsed ? '#fff' : '#E6FFFB',
-                                x: isRight ? childCountX : -childCountX,
-                                y: childCountY,
+                                x: isRight ? childCountX : 0,
+                                y: 8,
                                 radius: 6,
                                 cursor: 'pointer',
                             },
@@ -441,12 +443,12 @@ $(function () {
                             attrs: {
                                 text: `${children?.length}`,
                                 fill: 'rgba(0, 0, 0, .65)',
-                                x: isRight ? childCountX + childCountWidth / 2 : childCountWidth / 2 - childCountX,
-                                y: childCountY + 12,
                                 fontSize: 10,
                                 width: childCountWidth,
                                 textAlign: 'center',
                                 cursor: 'pointer',
+                                x: isRight ? childCountX + childCountWidth / 2 : childCountWidth / 2,
+                                y: 20,
                             },
                             name: 'child-count-text-shape',
                         });
@@ -467,10 +469,10 @@ $(function () {
         // 重置画布状态
         resetGraphState () {
             treeGraph.getNodes().forEach(item => {
-                item.clearState();
+                item.clearStates();
             });
             treeGraph.getEdges().forEach(item => {
-                item.clearState();
+                item.clearStates();
             });
         },
         // 保存画布
