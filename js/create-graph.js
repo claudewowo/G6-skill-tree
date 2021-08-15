@@ -13,7 +13,6 @@ $(function () {
         countMarginLeft: 10,
         nameMarginLeft: 10,
         nodeMinWidth: 50,
-        rootPadding: 15,
     };
     window.createGraph = {
         isAdmin: false, // 是否为管理员
@@ -132,6 +131,7 @@ $(function () {
                 offsetY: -14,
                 // 右击节点时显示右键菜单
                 shouldBegin (e) {
+                    var model = e.item.getModel();
                     var shouldBegin = true;
 
                     if (e.item) {
@@ -140,8 +140,12 @@ $(function () {
                         if (type === 'edge') {
                             shouldBegin = false;
                         } else if (type === 'node') {
-                            // 管理员可以进行复制删除等操作
+                            /*
+                            * 根节点和尾节点不显示右键菜单
+                            */
                             if (_this.isAdmin) {
+                                shouldBegin = true;
+                            } else if (model.children && model.children.length && model.depth !== 0) {
                                 shouldBegin = true;
                             } else {
                                 shouldBegin = false;
@@ -151,25 +155,28 @@ $(function () {
                     }
                 },
                 getContent (e) {
-                    if (e.name === 'edge-shape:contextmenu') {
-                        // 边
-                        return `
-                    <p class="menu-item" command="devareItem">
-                        <i command="devareItem"></i>删除
-                    </p>`;
-                    }
-
                     // 节点
                     var menus = '';
-                    // 右键菜单命令
-                    var commands = [{
-                        command: 'copyNode',
-                        name: '复制节点',
-                    },
-                    {
-                        command: 'devareItem',
-                        name: '删除节点',
-                    }];
+                    // 右键菜单命令 (管理员可以编辑节点等)
+                    var commands = _this.isAdmin ? [
+                        {
+                            command: 'copyNode',
+                            name: '复制节点',
+                        },
+                        {
+                            command: 'deleteItem',
+                            name: '删除节点',
+                        },
+                        {
+                            command: 'setToRoot',
+                            name: '作为根节点查看',
+                        }
+                    ] : [
+                        {
+                            command: 'setToRoot',
+                            name: '作为根节点查看',
+                        },
+                    ];
 
                     commands.forEach(item => {
                         menus += `<p class="menu-item" command="${item.command}">${item.name}</p>`;
@@ -298,14 +305,12 @@ $(function () {
                         countMarginLeft,
                         nameMarginLeft,
                         itemPadding,
-                        rootPadding,
                     } = BaseConfig;
 
                     var width = 0;
                     var height = 28;
                     var x = 0;
                     var y = 0;
-                    // var y = -height / 2;
 
                     var textWidth = Util.getTextSize(String(label), 12)[0];
                     var nodeWidth = textWidth + itemPadding + nameMarginLeft;
@@ -475,6 +480,26 @@ $(function () {
                 item.clearStates();
             });
         },
+        // 查找指定id
+        findById (id, treeData) {
+            var newTreeData;
+            var children = treeData.children;
+
+            if (treeData.id === id) {
+                newTreeData = treeData;
+            } else if(children && children.length) {
+                for (var i = 0; i < children.length; i++) {
+                    if (children[i].id === id) {
+                        newTreeData = children[i];
+                        break;
+                    } else {
+                        newTreeData = utils.findById(id, children[i]);
+                    }
+                }
+            }
+
+            return newTreeData;
+        },
         // 保存画布
         save () {
             $.ajax({
@@ -502,8 +527,9 @@ $(function () {
             // 保存当前画布
             utils.save();
         },
+
         // 删除节点和边
-        devareItem (item) {
+        deleteItem (item) {
             var isEdge = item.get('type') === 'edge';
 
             if (isEdge) {
@@ -520,6 +546,7 @@ $(function () {
                 });
             }
         },
+
         /* 键盘快捷键删除节点 */
         removeNode (e, callback) {
             if ((e && (e.keyCode === 8 || e.keyCode === 46)) || callback) {
@@ -549,6 +576,15 @@ $(function () {
                     done();
                 },
             });
+        },
+
+        // 以此为根节点开始查看
+        setToRoot (item) {
+            var { id } = item.getModel();
+            var newTreeData = utils.findById(id, mockData);
+
+            treeGraph.changeData(newTreeData);
+            treeGraph.fitCenter();
         },
     };
 
