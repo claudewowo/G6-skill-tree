@@ -190,11 +190,27 @@ $(function () {
         },
         // 初始化自定义tooltip
         createTooltip (Tooltip) {
+            /*
+             * 重写隐藏功能
+             * 加了延时隐藏功能
+             */
+            Tooltip.prototype.hideTooltip = function () {
+                var _this = this;
+                var tooltip = $('.g6-component-tooltip');
+
+                setTimeout(function () {
+                    // 鼠标不在当前元素上时才能隐藏
+                    if (!_this.currentTarget) {
+                        tooltip.css({
+                            visibility: 'hidden',
+                            display: 'none'
+                        });
+                    }
+                }, 300);
+            };
             return new Tooltip({
-                offsetX: 20,
-                offsetY: -20,
                 itemTypes: ['node'],
-                // fixToNode: [-1, 0.5],
+                fixToNode: [1, -1],
                 getContent (e) {
                     var outDiv = document.createElement('div');
                     outDiv.style.width = 'fit-content';

@@ -1,7 +1,7 @@
 $(function () {
     var { isAdmin, treeGraph } = createGraph.init();
 
-    $.ajax({
+    /* $.ajax({
         url: '',
         success (data) {
             treeGraph.read(mockData);
@@ -10,7 +10,7 @@ $(function () {
         fail (error) {
 
         }
-    });
+    }); */
 
     treeGraph.read(mockData);
     treeGraph.fitCenter();
