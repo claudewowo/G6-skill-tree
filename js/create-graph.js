@@ -480,7 +480,7 @@ $(function () {
                 item.clearStates();
             });
         },
-        // 查找指定id
+        // 递归查找指定id
         findById (id, treeData) {
             var newTreeData;
             var children = treeData.children;
@@ -494,6 +494,7 @@ $(function () {
                         break;
                     } else {
                         newTreeData = utils.findById(id, children[i]);
+                        if(newTreeData) break;
                     }
                 }
             }

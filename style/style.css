@@ -1,4 +1,4 @@
-@import 'https://at.alicdn.com/t/font_2273296_mn0rikfalv.css';
+@import 'https://at.alicdn.com/t/font_2273296_idbbqwclsz.css';
 
 /**
 * 定义标准盒模型
@@ -51,13 +51,13 @@ input::-webkit-inner-spin-button{
 input[type="number"]{-moz-appearance:textfield;}
 
 /* 页面样式 */
+.mb10{margin-bottom: 10px;}
+.mt15{margin-top: 15px;}
+.pos-relative{position:relative;}
+
 .el-container{
     display: flex;
     height: 100vh;
-}
-.skill_tree{
-    width:240px;
-    padding: 20px;
 }
 .layout-main{
     flex: 1;
@@ -70,6 +70,84 @@ input[type="number"]{-moz-appearance:textfield;}
     position: relative;
     height:calc(100vh - 65px);
     border-top: 1px solid #e0e0e0;
+}
+.form-label{
+    line-height: 30px;
+    margin-right: 10px;
+}
+.skill-searcher{
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    z-index: 10;
+}
+.skill-searcher .icon-arrow-bottom{
+    position: absolute;
+    right: 10px;
+    top: 4px;
+}
+#skill_input{
+    padding:4px 10px;
+    height: 30px;
+    line-height:30px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    cursor: pointer;
+    outline: none;
+    width: 300px;
+}
+#input_clear{
+    position: absolute;
+    right: 10px;
+    top: 4px;
+    font-size:16px;
+    cursor: pointer;
+}
+#input_clear:hover{color: #f85564;}
+#skill-tree{
+    position: absolute;
+    top: 30px;
+    left: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 0;
+    color: #333;
+}
+#skill-tree .tree-leaf-ul{
+    padding:5px;
+    min-width:100px;
+    background: #fff;
+    border: 1px solid #ddd;
+    display:inline-block;
+    vertical-align: top;
+    font-size: 12px;
+}
+#skill-tree .tree-leaf-ul.hidden{display:none;}
+#skill-tree li{
+    cursor: pointer;
+    padding:3px 24px 3px 6px;
+    height:30px;
+    line-height:22px;
+    border: 1px solid #fff;
+    position:relative;
+}
+#skill-tree li .icon-arrow-right{
+    position:absolute;
+    top: 3px;
+    right:6px;
+    font-size: 12px;
+    display:none;
+}
+#skill-tree li.selected{
+    border-color: #438bff;
+    background: #ebf7fe;
+}
+#skill-tree li:hover{
+    background: #ebf7fe;
+}
+#skill-tree li.selected .icon-arrow-right,
+#skill-tree li:hover .icon-arrow-right{
+    display: block;
 }
 #graph-container{
     position: relative;
@@ -126,9 +204,6 @@ input[type="number"]{-moz-appearance:textfield;}
     font-size: 20px;
     color: #f85564;
 }
-
-.mb10{margin-bottom: 10px;}
-.mt15{margin-top: 15px;}
 
 .g6-component-tooltip:hover{
     display: block !important;

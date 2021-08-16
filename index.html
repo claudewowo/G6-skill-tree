@@ -9,14 +9,16 @@
 </head>
 <body>
     <div class="el-container">
-        <div class="skill_tree">
-            技能树
-        </div>
         <div class="layout-main">
             <div class="layout-searcher">
                 <!-- 级联菜单 -->
-                级联菜单
-                <button>搜索</button>
+                <span class="form-label">选择要展示的技能:</span>
+                <div class="skill-searcher">
+                    <input type="text" id="skill_input" readonly />
+                    <i class="iconfont icon-arrow-bottom"></i>
+                    <div id="skill-tree"></div>
+                </div>
+
             </div>
 
             <div class="layout-graph">
@@ -25,32 +27,31 @@
                 <div id="toolbar"></div>
             </div>
         </div>
+    </div>
 
-        <div id="toolbar-help" class="dialog">
-            <div class="dialog-container">
-                <i class="iconfont icon-failed"></i>
-                <h2>画布支持的操作:</h2>
+    <div id="toolbar-help" class="dialog">
+        <div class="dialog-container">
+            <i class="iconfont icon-failed"></i>
+            <h2>画布支持的操作:</h2>
 
-                <h3 class="mb10 mt15">工具栏:</h3>
-                <p>通过点击工具栏按钮可完成对画布和流程的编辑, 如缩放, 移动等</p>
+            <h3 class="mb10 mt15">工具栏:</h3>
+            <p>通过点击工具栏按钮可完成对画布和流程的编辑, 如缩放, 移动等</p>
 
-                <h3 class="mb10 mt15">手势:</h3>
-                <p>1. 支持触摸板的设备可以通过手势完成画布操作</p>
-                <p>2. <i class="iconfont icon-fingers-zoom"></i> = 缩放画布</p>
-                <p>3. <i class="iconfont icon-fingers-move"></i> = 画布万向滚动</p>
+            <h3 class="mb10 mt15">手势:</h3>
+            <p>1. 支持触摸板的设备可以通过手势完成画布操作</p>
+            <p>2. <i class="iconfont icon-fingers-zoom"></i> = 缩放画布</p>
+            <p>3. <i class="iconfont icon-fingers-move"></i> = 画布万向滚动</p>
 
-                <h3 class="mb10 mt15">鼠标:</h3>
-                <p>1. 支持鼠标操作画布</p>
-                <p>2. 按住 <i class="iconfont icon-left-btn"></i> = 拖动画布或节点</p>
+            <h3 class="mb10 mt15">鼠标:</h3>
+            <p>1. 支持鼠标操作画布</p>
+            <p>2. 按住 <i class="iconfont icon-left-btn"></i> = 拖动画布或节点</p>
 
-                <h3 class="mb10 mt15">键盘快捷键:</h3>
-                <p><i class="iconfont icon-shift"></i> + <i class="iconfont icon-left-click"></i> = 框选节点</p>
-            </div>
+            <h3 class="mb10 mt15">键盘快捷键:</h3>
+            <p><i class="iconfont icon-shift"></i> + <i class="iconfont icon-left-click"></i> = 框选节点</p>
         </div>
     </div>
 
     <script src="./js/jquery.2.0.3.min.js"></script>
-    <script src="./js/simple-tree.js"></script>
     <script src="./js/g6.min.js"></script>
     <script src="./js/data.js"></script>
     <script src="./js/create-graph.js"></script>
