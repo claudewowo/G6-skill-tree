@@ -149,6 +149,44 @@ input[type="number"]{-moz-appearance:textfield;}
 #skill-tree li:hover .icon-arrow-right{
     display: block;
 }
+.form-check-group{
+    display: inline-block;
+    vertical-align: top;
+    height:30px;
+    line-height:30px;
+    margin-left:24px;
+}
+.form-check-group .form-check {
+    cursor: pointer;
+    display: inline-block;
+    vertical-align: top;
+}
+.form-check-group .form-check-input{
+    cursor: pointer;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: #fff;
+    border: 1px solid rgba(0,0,0,.25);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    -webkit-print-color-adjust: exact;
+    position:relative;
+    top:3px;
+}
+.form-check-group .form-check-input:checked{
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='%23fff'/%3e%3c/svg%3e");
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+.form-check-group .form-check-label{
+    cursor: pointer;
+
+}
 #graph-container{
     position: relative;
     height: 100%;

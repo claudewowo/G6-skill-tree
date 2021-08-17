@@ -1,5 +1,10 @@
 $(function () {
-    var { isAdmin, treeGraph, utils } = createGraph.init();
+    var {
+        isAdmin,
+        minimapLayout,
+        treeGraph,
+        utils,
+    } = createGraph.init();
 
     // 数据结构预处理
     function dataPreProcess (data, depth) {
@@ -104,6 +109,38 @@ $(function () {
             }, 200);
         });
     }
+
+    // 切换布局方式
+    $('.layout-searcher .form-check-input').change(function () {
+        var layoutType = this.id;
+        var layout = {
+            minimap: {
+                config: minimapLayout,
+                edgeType: 'smooth-edge',
+                nodeType: 'tree-node',
+            },
+            indented: {
+                config: {
+                    type: 'indented',
+                    isHorizontal: true,
+                    direction: 'LR',
+                    indent: 30,
+                },
+                edgeType: 'step-line',
+                nodeType: 'file-node',
+            },
+        };
+
+        treeGraph.getEdges().forEach(item => {
+            var model = item.getModel();
+
+            model.type = layout[layoutType].edgeType;
+        });
+        treeGraph.updateLayout(layout[layoutType].config);
+        setTimeout(function () {
+            treeGraph.layout();
+        }, 600);
+    });
 
     // 画布事件集合
     function graphBindEvents () {

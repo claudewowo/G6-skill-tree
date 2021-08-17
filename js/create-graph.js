@@ -5,6 +5,7 @@
 
 $(function () {
     var treeGraph;
+    var { TreeGraph, Util, Menu, Minimap, Grid, Tooltip, ToolBar, registerEdge, registerNode } = window.G6;
 
     var BaseConfig = {
         itemPadding: 10,
@@ -14,20 +15,41 @@ $(function () {
         nameMarginLeft: 10,
         nodeMinWidth: 50,
     };
+    var minimapLayout = {
+        type: 'mindmap',
+        direction: 'H',
+        getHeight () {
+            return 16;
+        },
+        getWidth (d) {
+            var labelWidth = Util.getTextSize(d.label, BaseConfig.nameFontSize)[0];
+            var width = BaseConfig.itemPadding + labelWidth + BaseConfig.childCountWidth;
+
+            return width;
+        },
+        getVGap () {
+            return 15;
+        },
+        getHGap () {
+            return 30;
+        },
+    };
+
     window.createGraph = {
         isAdmin: false, // 是否为管理员
         // 初始化树图
         init () {
             treeGraph = this.initGraph();
+
             return {
                 isAdmin: this.isAdmin,
+                minimapLayout,
                 treeGraph,
                 utils,
             };
         },
         // 初始化树图函数
         initGraph () {
-            var { TreeGraph, Util, Menu, Minimap, Grid, Tooltip, ToolBar, registerEdge, registerNode } = window.G6;
             var grid = new Grid();
             var minimap = new Minimap({
                 size: [200, 150],
@@ -66,7 +88,7 @@ $(function () {
                     ],
                 },
                 defaultNode: {
-                    type: 'treeNode',
+                    type: 'tree-node',
                     anchorPoints: [
                         [0, 0.5],
                         [1, 0.5],
@@ -74,6 +96,9 @@ $(function () {
                 },
                 defaultEdge: {
                     type: 'smooth-edge',
+                    style: {
+                        stroke: '#c0cad4',
+                    }
                 },
                 nodeStateStyles: {
                     selected: {
@@ -98,25 +123,7 @@ $(function () {
                         },
                     },
                 },
-                layout: {
-                    type: 'mindmap',
-                    direction: 'H',
-                    getHeight() {
-                        return 16;
-                    },
-                    getWidth (d) {
-                        var labelWidth = Util.getTextSize(d.label, BaseConfig.nameFontSize)[0];
-                        var width = BaseConfig.itemPadding + labelWidth + BaseConfig.childCountWidth;
-
-                        return width;
-                    },
-                    getVGap() {
-                        return 15;
-                    },
-                    getHGap() {
-                        return 30;
-                    },
-                },
+                layout: minimapLayout,
                 plugins: [grid, menu, minimap, tooltip, toolbar],
             });
 
@@ -262,6 +269,7 @@ $(function () {
         },
         // 自定义边
         registerEdge (registerEdge) {
+            // 注册脑图用的顺滑曲线
             registerEdge('smooth-edge', {
                 draw(cfg, group) {
                     var { startPoint, endPoint } = cfg;
@@ -290,10 +298,29 @@ $(function () {
                     return shape;
                 },
             });
+
+            // 注册文件树系统的边
+            registerEdge('step-line', {
+                getControlPoints(cfg) {
+                    var startPoint = cfg.startPoint;
+                    var endPoint = cfg.endPoint;
+
+                    return [
+                        startPoint,
+                        {
+                        x: startPoint.x,
+                        y: endPoint.y,
+                        },
+                        endPoint,
+                    ];
+                    },
+                }, 'polyline',
+            );
         },
         // 自定义节点
         registerNode (registerNode, Util) {
-            registerNode('treeNode', {
+            // 注册脑图节点
+            registerNode('tree-node', {
                 draw(cfg, group) {
                     var { label, collapsed, data, selected, children, depth } = cfg;
                     var rootNode = depth === 0;
@@ -358,7 +385,7 @@ $(function () {
                         });
                     }
 
-                    var nameColor = 'rgba(0, 0, 0, .65)';
+                    var nameColor = '#222';
 
                     if (selected) {
                         nameColor = '#40A8FF';
@@ -390,7 +417,6 @@ $(function () {
                                 textBaseline: 'top',
                                 fill: nameColor,
                                 fontSize: 12,
-                                fontFamily: 'PingFangSC-Regular',
                                 cursor: 'pointer',
                                 x: isRight ? mainX + 16 : width - textWidth,
                                 y: 0,
@@ -400,10 +426,10 @@ $(function () {
                         // 名称前面加个图标
                         group.addShape('text', {
                             attrs: {
-                                text: data && data.marked ? '\ue708' : '\ue616',
-                                fontFamily: 'iconfont',
-                                fill: data && data.marked ? '#333' : '#aaa',
                                 fontSize: 12,
+                                fontFamily: 'iconfont',
+                                text: data && data.marked ? '\ue708' : '\ue616',
+                                fill: data && data.marked ? '#333' : '#aaa',
                                 x: isRight ? 2 : width - textWidth - 14,
                                 y: 12,
                             },
@@ -422,14 +448,11 @@ $(function () {
                         });
 
                         keyShape.toFront();
-
                     }
 
                     // 子类数量
                     if (hasChildren && !rootNode) {
-                        var childCountHeight = 12;
                         var childCountX = width - childCountWidth;
-                        var childCountY = -childCountHeight / 2;
 
                         group.addShape('rect', {
                             attrs: {
@@ -446,12 +469,12 @@ $(function () {
                         });
                         group.addShape('text', {
                             attrs: {
-                                text: `${children?.length}`,
-                                fill: 'rgba(0, 0, 0, .65)',
+                                fill: '#222',
                                 fontSize: 10,
-                                width: childCountWidth,
-                                textAlign: 'center',
                                 cursor: 'pointer',
+                                textAlign: 'center',
+                                width: childCountWidth,
+                                text: `${children?.length}`,
                                 x: isRight ? childCountX + childCountWidth / 2 : childCountWidth / 2,
                                 y: 20,
                             },
@@ -459,6 +482,73 @@ $(function () {
                         });
                     }
 
+                    return keyShape;
+                },
+            });
+
+            // 注册文件树节点
+            registerNode('file-node', {
+                draw (cfg, group) {
+                    var keyShape = group.addShape('rect', {
+                        attrs: {
+                            x: 10,
+                            y: -12,
+                            fill: '#fff',
+                            stroke: null,
+                        },
+                    });
+                    var isLeaf = false;
+
+                    if (cfg.collapsed) {
+                        group.addShape('marker', {
+                            attrs: {
+                                symbol: 'triangle',
+                                x: 4,
+                                y: -2,
+                                r: 4,
+                                fill: '#666',
+                            },
+                            name: 'marker-shape',
+                        });
+                    } else if (cfg.children && cfg.children.length > 0) {
+                        group.addShape('marker', {
+                            attrs: {
+                                symbol: 'triangle-down',
+                                x: 4,
+                                y: -2,
+                                r: 4,
+                                fill: '#666',
+                            },
+                            name: 'marker-shape',
+                        });
+                    } else {
+                        isLeaf = true;
+                    }
+
+                    var shape = group.addShape('text', {
+                        attrs: {
+                            x: 15,
+                            y: 4,
+                            fill: '#666',
+                            fontSize: 16,
+                            text: cfg.name,
+                            textAlign: 'left',
+                        },
+                        name: 'text-shape',
+                    });
+                    var bbox = shape.getBBox();
+                    var backRectW = bbox.width;
+                    var backRectX = keyShape.attr('x');
+
+                    if (!isLeaf) {
+                        backRectW += 8;
+                        backRectX -= 15;
+                    }
+                    keyShape.attr({
+                        width: backRectW,
+                        height: bbox.height + 4,
+                        x: backRectX,
+                    });
                     return keyShape;
                 },
             });
